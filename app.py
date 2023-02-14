@@ -6,20 +6,20 @@ from ppgan.apps.wav2lip_predictor import Wav2LipPredictor
 
 # # https://github.com/JiehangXie/PaddleBoBo/blob/0.1/PaddleTools/GAN.py
 import base64
-# import librosa
+import librosa
 import soundfile as sf
 
-# def resample_rate(path,new_sample_rate = 16000):
+def resample_rate(path,new_sample_rate = 16000):
 
-#     signal, sr = librosa.load(path, sr=None)
-#     wavfile = path.split('/')[-1]
-#     wavfile = wavfile.split('.')[0]
-#     file_name = wavfile + '_new.wav'
-#     new_signal = librosa.resample(signal, sr, new_sample_rate) # 
-#     #librosa.output.write_wav(file_name, new_signal , new_sample_rate) 
-#     sf.write(file_name, new_signal, new_sample_rate, subtype='PCM_24')
-#     print(f'{file_name} has download.')
-#     return file_name
+    signal, sr = librosa.load(path, sr=None)
+    wavfile = path.split('/')[-1]
+    wavfile = wavfile.split('.')[0]
+    file_name = wavfile + '_new.wav'
+    new_signal = librosa.resample(signal, sr, new_sample_rate) # 
+    #librosa.output.write_wav(file_name, new_signal , new_sample_rate) 
+    sf.write(file_name, new_signal, new_sample_rate, subtype='PCM_24')
+    print(f'{file_name} has download.')
+    return file_name
 
 
 
@@ -40,15 +40,15 @@ def audio2text(input_file):
     # file.write(text)
     # file.close()
 
-    # input_file=resample_rate(input_file,new_sample_rate = 16000)
+    input_file=resample_rate(input_file,new_sample_rate = 16000)
 
     result = asr(audio_file=input_file,device=paddle.get_device())
     print('audio2text')
     return result
 
 def text2audio(text):
-    out_file="output.wav"
-    tts(text, output=out_file)
+    # out_file="output.wav"
+    out_file =tts(text)
     file = open(out_file,"wb")
     content=file.read()
     b = base64.b64encode(content)   # 进行解码
@@ -59,7 +59,7 @@ def text2audio(text):
 def reply(t):
     data = [t]
     result = dialogue(data)
-    print('reply')
+    print('reply',result[0])
     return result[0]
 
 def wav2lip(input_video,input_audio):
