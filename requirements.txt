@@ -1,0 +1,7 @@
+gradio
+librosa
+paddlepaddle
+pytest-runner
+paddlespeech
+paddlenlp
+ppgan

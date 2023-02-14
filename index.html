@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>\
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js"></script>
+</head>
+
+<body>
+
+    <script>
+        navigator.mediaDevices.getUserMedia({
+            audio: true
+        }).then(async function(stream) {
+            let recorder = RecordRTC(stream, {
+                type: 'audio',
+                mimeType: 'audio/wav',
+                recorderType: StereoAudioRecorder,
+            });
+            recorder.startRecording();
+
+            const sleep = m => new Promise(r => setTimeout(r, m));
+            await sleep(3000);
+
+            recorder.stopRecording(function() {
+                recorder.getDataURL(b => {
+                    postData('http://127.0.0.1:5555/api', {
+                            audio: b.replace('data:audio/wav;base64,', '')
+                        })
+                        .then(data => {
+                            console.log(data);
+                        });
+                });
+            });
+        });
+
+
+        async function postData(url = '', data = {}) {
+            const response = await fetch(url, {
+                method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                mode: 'cors', // no-cors, *cors, same-origin
+                cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: 'same-origin', // include, *same-origin, omit
+                headers: {
+                    'Content-Type': 'application/json'
+                        // 'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                redirect: 'follow', // manual, *follow, error
+                referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                body: JSON.stringify(data) // body data type must match "Content-Type" header
+            });
+            return response.json(); // parses JSON response into native JavaScript objects
+        }
+    </script>
+</body>
+
+</html>
