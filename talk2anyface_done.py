@@ -254,7 +254,7 @@ def create_avatar(portrait_file):
 
 
 def test(text,wav_file_input):
-  global portrait_video
+  portrait_video='./portrait_video.mp4'
   if wav_file_input!=None:
     wav_file=write_wav(wav_file_input[1],wav_file_input[0],'./wav_file.wav')
     text=audio2text(wav_file)
