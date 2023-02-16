@@ -1,7 +1,7 @@
-gradio
-librosa
-paddlepaddle
+paddlepaddle-gpu==2.4.1.post116
 pytest-runner
 paddlespeech
-paddlenlp
+paddlenlp>=2.5.0
+ppdiffusers
 ppgan
+face_recognition
