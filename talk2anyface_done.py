@@ -295,7 +295,7 @@ def encode_base64(file):
 
 import cv2
 from PIL import Image
-def convert_mp4_to_gif(input_file,step=2,duration=None):
+def convert_mp4_to_gif(input_file,step=None,duration=None):
     '''
     传参 :  input_file 视频文件名
             output_file gif文件名
@@ -310,6 +310,20 @@ def convert_mp4_to_gif(input_file,step=2,duration=None):
     frame_count = 0
     i = 0
     frames = []
+
+    if duration==None:
+      duration=1/rate
+
+    #单位是秒
+    print('rate',rate)
+    if step==None:
+      if rate>12:
+        step=rate-12
+        duration=step/rate
+      else:
+        step=1
+    
+        
     while still_reading:
         still_reading, image = video_capture.read()
         if not still_reading:
@@ -319,10 +333,9 @@ def convert_mp4_to_gif(input_file,step=2,duration=None):
             frame_count += 1
             i=0
         i+=1
-    #单位是秒
+    
     # v_duration=frame_count/rate
-    if duration==None:
-       duration=1/rate
+    
 
     frame_one = frames[0]
     output_file=os.path.join(output,'portrait.gif')
