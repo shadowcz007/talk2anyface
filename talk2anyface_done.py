@@ -242,7 +242,9 @@ os.chdir(root_path)
 
 portrait_video=None
 
-def create_avatar(portrait_file):
+def create_avatar(portrait_file,file_type):
+  print('file_type::',file_type)
+  url=''
   # avatar=text2img(text)
   #存下来，并索引
   # portrait_file=avatar['id']+'.png'
@@ -250,10 +252,14 @@ def create_avatar(portrait_file):
   # if check_face_image(portrait_file)==False:
   #     return portrait_file
   portrait_video=FOM(portrait_file,'driving_video.mp4','./portrait_video.mp4')
-  return portrait_video
+  if file_type=='gif':
+    portrait_video=convert_mp4_to_gif(portrait_video)
+    url='data:image/gif;base64,'+encode_base64(portrait_video)
+  
+  return '<img src="'+url+'" />'
 
 
-def test(text,wav_file_input):
+def test(text,wav_file_input,input_type):
   portrait_video='./portrait_video.mp4'
   if wav_file_input!=None:
     wav_file=write_wav(wav_file_input[1],wav_file_input[0],'./wav_file.wav')
@@ -264,17 +270,65 @@ def test(text,wav_file_input):
   result=wav2lip(portrait_video,input_audio)
   return result
 
-# def talking_step_by_step(wav_file_input,portrait_video):
-#     wav_file=write_wav(wav_file_input[1],wav_file_input[0],'./wav_file.wav')
-#     text=audio2text(wav_file)
-#     q=reply(text)
-#     input_audio=text2audio(q)
+def test2(text,wav_file_input,input_type):
+  portrait_video='./portrait_video.mp4'
+  if input_type=='wav':
+    input_audio=wav_file_input
+  elif input_type=='text':
+    input_audio=text2audio(text)
+  
+  result=wav2lip(portrait_video,input_audio)
+  return result
 
-#     # portrait_video=portrait
-#     result=wav2lip(portrait_video,input_audio)
-#     # os.path.join(os.path.dirname(__file__),  "video.mp4")
-#     print(result)
-#     return result
+
+def encode_base64(file):
+    with open(file, 'rb') as f:
+        img_data = f.read()
+        base64_data = base64.b64encode(img_data)
+        print(type(base64_data))
+        # print(base64_data)
+        # 如果想要在浏览器上访问base64格式图片，需要在前面加上：data:image/jpeg;base64,
+        base64_str = str(base64_data, 'utf-8')
+        # print(base64_str)
+        return base64_str
+    
+
+import cv2
+from PIL import Image
+def convert_mp4_to_gif(input_file,step=2,duration=None):
+    '''
+    传参 :  input_file 视频文件名
+            output_file gif文件名
+            duration 每帧图像的停留时间 毫秒ms 
+            step 跳帧,降低采样率,减小gif体积
+    返回 : 无
+    '''
+    output,filename = os.path.split(input_file)
+    video_capture = cv2.VideoCapture(input_file)
+    rate=video_capture.get(5)
+    still_reading, image = video_capture.read()
+    frame_count = 0
+    i = 0
+    frames = []
+    while still_reading:
+        still_reading, image = video_capture.read()
+        if not still_reading:
+            break
+        if i>step:
+            frames.append(Image.fromarray(cv2.cvtColor(image.copy(),cv2.COLOR_BGR2RGB)))
+            frame_count += 1
+            i=0
+        i+=1
+    #单位是秒
+    # v_duration=frame_count/rate
+    if duration==None:
+       duration=1/rate
+
+    frame_one = frames[0]
+    output_file=os.path.join(output,'portrait.gif')
+    frame_one.save(output_file, format="GIF", append_images=frames[1:],save_all=True, duration=duration, loop=0)
+    return output_file
+
 
 
 
@@ -284,16 +338,20 @@ with gr.Blocks() as demo:
         # avatar
         # input_text=gr.Textbox()
         input_i=gr.Image(type='filepath')
-        output_video1=gr.Video()
+        input_file_type=gr.Radio(["mp4", "gif"],value='mp4', label="文件类型")
+        # output_video1=gr.Video(format='mp4')
+        # output_gif=gr.Image(type="numpy")
+        
         btn = gr.Button(value="创建形象")
-        btn.click(create_avatar, inputs=[input_i], outputs=[output_video1])
+        btn.click(create_avatar, inputs=[input_i,input_file_type], outputs=[gr.HTML()],api_name='create_avatar')
     with gr.Column():
         # talking
+        input_file_type=gr.Radio(["wav", "text"],value='wav', label="输入类型")
         input_audio=gr.Audio(label="录音",type="numpy",source='microphone')
         input_talk_text=gr.Textbox()
         output_video2=gr.Video()
         btn2 = gr.Button(value="生成视频")
-        btn2.click(test, inputs=[input_talk_text,input_audio], outputs=[output_video2])
+        btn2.click(test2, inputs=[input_talk_text,input_audio,input_file_type], outputs=[output_video2],api_name='create_talk_face')
       
     # gr.Interface(fn=create_avatar, inputs=[create_avatar], outputs=[output_video1],
     #       layout="vertical")
@@ -304,9 +362,10 @@ with gr.Blocks() as demo:
 
     demo.launch(
                 # server_name='0.0.0.0',
-                share=False,
+                share=True,
                 debug=True,
-                max_threads=5,
+                max_threads=2,
                 show_error=True,
+                show_api=True
                 # file_directories=[root_path]
                 )

@@ -5,3 +5,6 @@ paddlenlp>=2.5.0
 ppdiffusers
 ppgan
 face_recognition
+opencv-python
+fastapi
+uvicorn[standard]
