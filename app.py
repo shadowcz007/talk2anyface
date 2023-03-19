@@ -50,12 +50,13 @@ def create_avatar(portrait_file,driving_video,result_type='gif',is_base64=True):
   portrait_video=fom.run(portrait_file,result_type=='gif',is_base64)
   return portrait_video
 
-def create_avatar_video(portrait_file,driving_video,text,is_base64=True):
+def create_avatar_video(portrait_file,driving_video,text):
   fom.update_driving_video(driving_video)
-  portrait_video=fom.run(portrait_file,False,is_base64)
+  portrait_video=fom.run(portrait_file,False,False)
   input_audio=tts.text2audio(text)
-  print(input_audio)
+  # print(input_audio)
   res=wav2lip.run(portrait_video,input_audio)
+
   return res 
 
    
@@ -104,12 +105,12 @@ async def driving_video_api():
 
 @app.post("/create_avatar")
 async def create_avatar_api(avatar: Avatar):
-    print(avatar)
+    # print(avatar)
     fp=talking_face.save_img_base64(avatar.base64,os.path.join(get_user_portrait_img_root_path(),avatar.filename))
     if avatar.type=='gif':
       res=create_avatar(fp,get_driving_video_path(avatar.emotion),avatar.type,avatar.isBase64)
     elif avatar.type=='mp4':
-      res=create_avatar_video(fp,get_driving_video_path(avatar.emotion),avatar.dialogue,avatar.isBase64)
+      res=create_avatar_video(fp,get_driving_video_path(avatar.emotion),avatar.dialogue)
     return {
        "data":{
        "base64":res,

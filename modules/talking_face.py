@@ -11,8 +11,9 @@ class TTS(object):
         self.device = device
 
     def text2audio(self,text):
-        print('text2audio - run')
+        print('text2audio - run',text)
         out_file =self.tts(text,device=self.device)
+        print('out_file',out_file)
         return out_file
 
 class FOM(object):
