@@ -237,13 +237,32 @@ import gradio as gr
 # root_path='/content/drive/MyDrive/data'
 # os.chdir(root_path)
 
-root_path='./data'
-os.chdir(root_path)
+# 获取driving video文件的绝对地址
+def get_driving_video_path(driving_video_type='base'):
+  output,filename = os.path.split(os.path.abspath(__file__))
+  fp=os.path.join(output,'driving_video/'+driving_video_type+'.mp4')
+  return fp
+def get_portrait_video_path():
+  output,filename = os.path.split(os.path.abspath(__file__))
+  fp=os.path.join(output,'data/portrait_video.mp4')
+  return fp
+def get_wav_file_path():
+  output,filename = os.path.split(os.path.abspath(__file__))
+  fp=os.path.join(output,'data/wav_file.wav')
+  return fp
+def get_gif_path():
+  output,filename = os.path.split(os.path.abspath(__file__))
+  fp=os.path.join(output,'data/portrait_gif.gif')
+  return fp
+
+# root_path='./data'
+# os.chdir(root_path)
 
 portrait_video=None
 
-def create_avatar(portrait_file,file_type):
-  print('file_type::',file_type)
+def create_avatar(portrait_file,file_type,driving_video):
+ 
+  # print('file_type::',file_type)
   url=''
   # avatar=text2img(text)
   #存下来，并索引
@@ -251,7 +270,7 @@ def create_avatar(portrait_file,file_type):
   # avatar['image'].save(portrait_file)
   # if check_face_image(portrait_file)==False:
   #     return portrait_file
-  portrait_video=FOM(portrait_file,'driving_video.mp4','./portrait_video.mp4')
+  portrait_video=FOM(portrait_file,driving_video,get_portrait_video_path())
   if file_type=='gif':
     portrait_video=convert_mp4_to_gif(portrait_video)
     url='data:image/gif;base64,'+encode_base64(portrait_video)
@@ -260,9 +279,9 @@ def create_avatar(portrait_file,file_type):
 
 
 def test(text,wav_file_input,input_type):
-  portrait_video='./portrait_video.mp4'
+  portrait_video=get_portrait_video_path()
   if wav_file_input!=None:
-    wav_file=write_wav(wav_file_input[1],wav_file_input[0],'./wav_file.wav')
+    wav_file=write_wav(wav_file_input[1],wav_file_input[0],get_wav_file_path())
     text=audio2text(wav_file)
   
   q=reply(text)
@@ -271,7 +290,7 @@ def test(text,wav_file_input,input_type):
   return result
 
 def test2(text,wav_file_input,input_type):
-  portrait_video='./portrait_video.mp4'
+  portrait_video=get_portrait_video_path()
   if input_type=='wav':
     input_audio=wav_file_input
   elif input_type=='text':
@@ -338,7 +357,7 @@ def convert_mp4_to_gif(input_file,step=None,duration=None):
     
 
     frame_one = frames[0]
-    output_file=os.path.join(output,'portrait.gif')
+    output_file=get_gif_path()
     frame_one.save(output_file, format="GIF", append_images=frames[1:],save_all=True, duration=duration, loop=0)
     return output_file
 
@@ -347,16 +366,23 @@ def convert_mp4_to_gif(input_file,step=None,duration=None):
 
 
 with gr.Blocks() as demo:
+    
     with gr.Column():
         # avatar
         # input_text=gr.Textbox()
         input_i=gr.Image(type='filepath')
         input_file_type=gr.Radio(["mp4", "gif"],value='mp4', label="文件类型")
+        input_driving_video=gr.Video(format='mp4')
+        #input_driving_video_type=gr.Radio(["normal"],value='base', label="文件类型")
         # output_video1=gr.Video(format='mp4')
         # output_gif=gr.Image(type="numpy")
+        gr.Examples(
+            examples=[get_driving_video_path(x) for x in ['normal','1']],
+            inputs=input_driving_video,
+        )
         
         btn = gr.Button(value="创建形象")
-        btn.click(create_avatar, inputs=[input_i,input_file_type], outputs=[gr.HTML()],api_name='create_avatar')
+        btn.click(create_avatar, inputs=[input_i,input_file_type,input_driving_video], outputs=[gr.HTML()],api_name='create_avatar')
     with gr.Column():
         # talking
         input_file_type=gr.Radio(["wav", "text"],value='wav', label="输入类型")
