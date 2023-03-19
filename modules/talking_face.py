@@ -55,9 +55,14 @@ class Wav2lip(object):
        
         self.out_file=out_file
         
-    def run(self,input_video,input_audio):
+    def run(self,input_video,input_audio,is_base64):
         self.wav2lip_predictor.run(input_video, input_audio, self.out_file)
-        return self.out_file
+
+        if is_base64:
+            return 'data:video/mp4;base64,'+encode_base64(self.out_file)
+        else:
+            return self.out_file
+    
 
 
 # 转video 2 gif
